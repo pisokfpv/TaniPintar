@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Information about the farmer",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Crop": {
+      "title": "Horticulture Crop",
+      "description": "A specific crop being grown",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "variety": { "type": "string" },
+        "plantingDate": { "type": "string", "format": "date-time" },
+        "expectedHarvestDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "harvested", "failed"] },
+        "location": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["name", "plantingDate", "status"]
+    },
+    "Activity": {
+      "title": "Farming Activity",
+      "description": "A log of a farming task",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "cropId": { "type": "string" },
+        "type": { "type": "string", "enum": ["watering", "fertilizing", "pest_control", "pruning", "harvesting", "other"] },
+        "date": { "type": "string", "format": "date-time" },
+        "notes": { "type": "string" },
+        "cost": { "type": "number" }
+      },
+      "required": ["cropId", "type", "date"]
+    },
+    "Reminder": {
+      "title": "Task Reminder",
+      "description": "A scheduled reminder for the farmer",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "completed": { "type": "boolean" },
+        "cropId": { "type": "string" }
+      },
+      "required": ["title", "dueDate", "completed"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document"
+    },
+    "/users/{userId}/crops/{cropId}": {
+      "schema": "Crop",
+      "description": "Collection of crops for a user"
+    },
+    "/users/{userId}/activities/{activityId}": {
+      "schema": "Activity",
+      "description": "Collection of activities for a user"
+    },
+    "/users/{userId}/reminders/{reminderId}": {
+      "schema": "Reminder",
+      "description": "Collection of reminders for a user"
+    }
+  }
+}
