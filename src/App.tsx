@@ -203,13 +203,13 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
         >
-          <div className="px-6 py-4 border-bottom border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
             <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
               <X size={20} className="text-slate-500" />
             </button>
           </div>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {children}
           </div>
         </motion.div>
@@ -224,7 +224,14 @@ export default function App() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'crops' | 'activities' | 'reminders' | 'reports' | 'assistant'>('dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Set sidebar open by default on desktop
+  useEffect(() => {
+    if (window.innerWidth >= 1024) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   // Data State
@@ -407,7 +414,7 @@ export default function App() {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
       
       const context = `
-        Anda adalah asisten ahli pertanian hortikultura bernama TaniPintar.
+        Anda adalah asisten ahli pertanian hortikultura bernama Tanah Subur.
         Data petani saat ini:
         - Jumlah tanaman aktif: ${activeCrops.length}
         - Daftar tanaman: ${activeCrops.map(c => `${c.name} (${c.variety || 'umum'})`).join(', ')}
@@ -629,12 +636,12 @@ export default function App() {
           <table className="w-full text-left">
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tanaman</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tipe</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Biaya</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Catatan</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Aksi</th>
+                <th className="px-4 sm:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal</th>
+                <th className="px-4 sm:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tanaman</th>
+                <th className="px-4 sm:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tipe</th>
+                <th className="hidden sm:table-cell px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Biaya</th>
+                <th className="hidden lg:table-cell px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Catatan</th>
+                <th className="px-4 sm:px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -642,21 +649,21 @@ export default function App() {
                 const crop = crops.find(c => c.id === activity.cropId);
                 return (
                   <tr key={activity.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-slate-600">{format(activity.date.toDate(), 'dd MMM yyyy')}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-slate-800">{crop?.name || 'Unknown'}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">{format(activity.date.toDate(), 'dd MMM')}</td>
+                    <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-800">{crop?.name || 'Unknown'}</td>
+                    <td className="px-4 sm:px-6 py-4">
                       <span className="flex items-center gap-2 text-sm text-slate-600 capitalize">
                         {activity.type === 'watering' && <Droplets size={14} className="text-blue-500" />}
                         {activity.type === 'fertilizing' && <Zap size={14} className="text-amber-500" />}
                         {activity.type === 'pest_control' && <Bug size={14} className="text-rose-500" />}
                         {activity.type === 'pruning' && <Scissors size={14} className="text-emerald-500" />}
                         {activity.type === 'harvesting' && <Wheat size={14} className="text-amber-600" />}
-                        {activity.type}
+                        <span className="hidden sm:inline">{activity.type}</span>
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">Rp {activity.cost?.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">{activity.notes}</td>
-                    <td className="px-6 py-4">
+                    <td className="hidden sm:table-cell px-6 py-4 text-sm text-slate-600">Rp {activity.cost?.toLocaleString()}</td>
+                    <td className="hidden lg:table-cell px-6 py-4 text-sm text-slate-500 max-w-xs truncate">{activity.notes}</td>
+                    <td className="px-4 sm:px-6 py-4 text-right">
                       <button onClick={() => deleteItem('activities', activity.id)} className="text-slate-300 hover:text-rose-500 transition-colors">
                         <Trash2 size={16} />
                       </button>
@@ -811,7 +818,7 @@ export default function App() {
   );
 
   const AssistantView = () => (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-12rem)] flex flex-col">
+    <div className="max-w-4xl mx-auto h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] flex flex-col">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800">Tanya Ahli Tani</h2>
         <p className="text-slate-500">Konsultasikan masalah tanaman Anda dengan asisten cerdas kami.</p>
@@ -825,7 +832,7 @@ export default function App() {
                 <Sparkles size={32} />
               </div>
               <div>
-                <p className="font-bold text-slate-800">Halo, saya TaniPintar!</p>
+                <p className="font-bold text-slate-800">Halo, saya Tanah Subur!</p>
                 <p className="text-sm">Tanyakan apa saja tentang tanaman hortikultura Anda.</p>
               </div>
             </div>
@@ -894,7 +901,7 @@ export default function App() {
           <div className="w-20 h-20 bg-emerald-600 text-white rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-emerald-200">
             <Sprout size={40} />
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-3">TaniPintar</h1>
+          <h1 className="text-3xl font-bold text-slate-800 mb-3">Tanah Subur</h1>
           <p className="text-slate-500 mb-10 leading-relaxed">
             Asisten cerdas untuk manajemen pertanian hortikultura Anda. Catat, pantau, dan tingkatkan hasil panen.
           </p>
@@ -911,27 +918,40 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">
+      {/* Sidebar Overlay for Mobile */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-100 transition-transform duration-300 lg:translate-x-0",
-        !isSidebarOpen && "-translate-x-full"
+        "fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-100 transition-transform duration-300",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="h-full flex flex-col p-6">
           <div className="flex items-center gap-3 mb-10 px-2">
             <div className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-100">
               <Sprout size={24} />
             </div>
-            <h1 className="text-xl font-bold text-slate-800 tracking-tight">TaniPintar</h1>
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight">Tanah Subur</h1>
           </div>
 
           <nav className="flex-1 space-y-2">
-            <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-            <SidebarItem icon={Sprout} label="Tanaman" active={activeTab === 'crops'} onClick={() => setActiveTab('crops')} />
-            <SidebarItem icon={ClipboardList} label="Aktivitas" active={activeTab === 'activities'} onClick={() => setActiveTab('activities')} />
-            <SidebarItem icon={Bell} label="Pengingat" active={activeTab === 'reminders'} onClick={() => setActiveTab('reminders')} />
-            <SidebarItem icon={BarChart3} label="Laporan" active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />
-            <SidebarItem icon={Sparkles} label="Tanya Ahli" active={activeTab === 'assistant'} onClick={() => setActiveTab('assistant')} />
+            <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => { setActiveTab('dashboard'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+            <SidebarItem icon={Sprout} label="Tanaman" active={activeTab === 'crops'} onClick={() => { setActiveTab('crops'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+            <SidebarItem icon={ClipboardList} label="Aktivitas" active={activeTab === 'activities'} onClick={() => { setActiveTab('activities'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+            <SidebarItem icon={Bell} label="Pengingat" active={activeTab === 'reminders'} onClick={() => { setActiveTab('reminders'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+            <SidebarItem icon={BarChart3} label="Laporan" active={activeTab === 'reports'} onClick={() => { setActiveTab('reports'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
+            <SidebarItem icon={Sparkles} label="Tanya Ahli" active={activeTab === 'assistant'} onClick={() => { setActiveTab('assistant'); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} />
           </nav>
 
           <div className="mt-auto pt-6 border-t border-slate-100">
@@ -955,13 +975,13 @@ export default function App() {
         "flex-1 transition-all duration-300",
         isSidebarOpen ? "lg:ml-72" : "ml-0"
       )}>
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-4 flex items-center justify-between">
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-slate-100 rounded-xl lg:hidden">
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 sm:px-8 py-4 flex items-center justify-between">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-slate-100 rounded-xl">
             <Menu size={24} className="text-slate-600" />
           </button>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-slate-400">Halaman /</span>
-            <span className="text-sm font-bold text-slate-800 capitalize">{activeTab}</span>
+          <div className="flex items-center gap-2 flex-1 ml-4 lg:ml-0">
+            <span className="text-xs sm:text-sm font-medium text-slate-400 hidden xs:inline">Halaman /</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-800 capitalize">{activeTab}</span>
           </div>
           <div className="flex items-center gap-4">
             <button className="p-2 text-slate-400 hover:text-emerald-600 transition-colors">
@@ -970,7 +990,7 @@ export default function App() {
           </div>
         </header>
 
-        <div className="p-8 max-w-7xl mx-auto">
+        <div className="p-4 sm:p-8 max-w-7xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
